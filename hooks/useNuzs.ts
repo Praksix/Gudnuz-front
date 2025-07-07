@@ -43,22 +43,33 @@ export const useNuzs = (options: UseNuzsOptions = {}) => {
 
   // Charger les votes de l'utilisateur
   const loadUserVotes = useCallback(async (nuzIds: string[]) => {
-    if (!currentUserId) return;
+    if (!currentUserId) {
+      console.log('👤 Aucun utilisateur connecté, pas de votes à charger');
+      return;
+    }
 
     try {
+      console.log('🔍 Chargement des votes pour l\'utilisateur:', currentUserId);
       const votes = new Set<string>();
       
       // Vérifier les votes pour chaque Nuz
       for (const nuzId of nuzIds) {
-        const hasVoted = await voteService.checkVote(nuzId, currentUserId);
-        if (hasVoted) {
-          votes.add(nuzId);
+        try {
+          const hasVoted = await voteService.checkVote(nuzId, currentUserId);
+          if (hasVoted) {
+            votes.add(nuzId);
+          }
+        } catch (voteError) {
+          console.warn(`⚠️ Erreur lors de la vérification du vote pour ${nuzId}:`, voteError);
+          // Continue avec les autres votes même si un échoue
         }
       }
       
       setUserVotes(votes);
+      console.log('✅ Votes utilisateur chargés:', votes.size, 'votes trouvés');
     } catch (err) {
-      console.error('Erreur lors du chargement des votes utilisateur:', err);
+      console.error('❌ Erreur lors du chargement des votes utilisateur:', err);
+      // Ne pas bloquer l'affichage des Nuz si les votes échouent
     }
   }, [currentUserId]);
 

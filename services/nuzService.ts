@@ -7,6 +7,7 @@ export interface Nuz {
   content: string;
   authorId: string;
   author?: string;
+  authorUsername?: string;
   voteCount: number;
   createdAt: string;
   status: string;

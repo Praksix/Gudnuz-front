@@ -10,6 +10,7 @@ interface UseAuthReturn {
   register: (userData: RegisterRequest) => Promise<boolean>;
   logout: () => Promise<void>;
   clearError: () => void;
+  checkAuthStatus: () => Promise<void>;
 }
 
 export const useAuth = (): UseAuthReturn => {
@@ -24,18 +25,22 @@ export const useAuth = (): UseAuthReturn => {
       setIsLoading(true);
       setError(null);
       
+      console.log('🔍 Vérification de l\'état d\'authentification...');
       const isLoggedIn = await authService.isLoggedIn();
+      console.log('📊 État de connexion:', isLoggedIn);
       
       if (isLoggedIn) {
         const userData = await authService.getUserData();
+        console.log('👤 Données utilisateur récupérées:', userData ? 'Oui' : 'Non');
         setUser(userData);
         setIsAuthenticated(true);
       } else {
+        console.log('🚪 Utilisateur non connecté');
         setUser(null);
         setIsAuthenticated(false);
       }
     } catch (err) {
-      console.error('Erreur lors de la vérification de l\'authentification:', err);
+      console.error('❌ Erreur lors de la vérification de l\'authentification:', err);
       setUser(null);
       setIsAuthenticated(false);
     } finally {
@@ -125,5 +130,6 @@ export const useAuth = (): UseAuthReturn => {
     register,
     logout,
     clearError,
+    checkAuthStatus, // Exposer pour le débogage
   };
 }; 

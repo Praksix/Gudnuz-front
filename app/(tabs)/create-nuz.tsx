@@ -12,12 +12,13 @@ import {
   ScrollView,
 } from 'react-native';
 import { router } from 'expo-router';
-import { nuzService } from '../services/nuzService';
-import { authService } from '../services/authService';
+import { nuzService } from '../../services/nuzService';
+import { authService } from '../../services/authService';
 
 export default function CreateNuzScreen() {
   const [title, setTitle] = useState('');
   const [content, setContent] = useState('');
+  const [author, setAuthor] = useState('');
   const [loading, setLoading] = useState(false);
   const [currentUserId, setCurrentUserId] = useState<string | null>(null);
 
@@ -63,6 +64,7 @@ export default function CreateNuzScreen() {
             onPress: () => {
               setTitle('');
               setContent('');
+              setAuthor('');
               router.back();
             },
           },
@@ -120,7 +122,7 @@ export default function CreateNuzScreen() {
           <TextInput
             style={styles.titleInput}
             value={title}
-            onChangeText={setTitle}
+            onChangeText={text => setTitle(text)}
             placeholder="Donnez un titre accrocheur à votre Nuz..."
             placeholderTextColor="#999"
             maxLength={100}

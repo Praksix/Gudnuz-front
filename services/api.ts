@@ -37,34 +37,47 @@ apiClient.interceptors.response.use(
   (response) => response,
   async (error) => {
     const originalRequest = error.config;
+    const status = error.response?.status;
+    const url = error.config?.url;
+    
+    // Ignorer les erreurs 403/401 pour certains endpoints non critiques
+    const isNonCriticalEndpoint = url?.includes('/auth/logout') || url?.includes('/votes/check');
     
     // Si l'erreur est 401 (non autorisé) et qu'on n'a pas déjà tenté de rafraîchir le token
-    if (error.response?.status === 401 && !originalRequest._retry) {
+    // ET que ce n'est pas un endpoint d'authentification
+    if (status === 401 && !originalRequest._retry && !url?.includes('/auth/')) {
       originalRequest._retry = true;
       
       try {
-        // Pour l'instant, on déconnecte directement l'utilisateur
-        // Vous pouvez implémenter le rafraîchissement de token plus tard
-        await tokenService.clearUserData();
-        console.error('Token expiré, déconnexion automatique');
+        // Vérifier si le token existe et est expiré avant de déconnecter
+        const token = await tokenService.getToken();
+        if (token) {
+          await tokenService.clearUserData();
+          console.log('🔐 Token expiré, déconnexion automatique');
+        }
       } catch (refreshError) {
-        console.error('Erreur lors de la déconnexion:', refreshError);
+        console.error('❌ Erreur lors de la déconnexion:', refreshError);
       }
     }
     
-    // Amélioration de la gestion des erreurs
+    // Gestion des erreurs avec filtrage pour les endpoints non critiques
     if (error.code === 'ECONNABORTED') {
-      console.error('Erreur API: Timeout - La requête a pris trop de temps');
+      console.error('⏰ Erreur API: Timeout - La requête a pris trop de temps');
     } else if (error.response) {
-      console.error('Erreur API:', {
-        status: error.response.status,
-        data: error.response.data,
-        url: error.config?.url
-      });
+      // Ne pas logger les erreurs 403/401 pour les endpoints non critiques
+      if (!isNonCriticalEndpoint || (status !== 403 && status !== 401)) {
+        console.error('❌ Erreur API:', {
+          status: status,
+          data: error.response.data,
+          url: url
+        });
+      } else {
+        console.log(`ℹ️ Erreur ${status} pour ${url} (non critique)`);
+      }
     } else if (error.request) {
-      console.error('Erreur API: Pas de réponse du serveur - Vérifiez votre connexion');
+      console.error('🌐 Erreur API: Pas de réponse du serveur - Vérifiez votre connexion');
     } else {
-      console.error('Erreur API:', error.message);
+      console.error('❌ Erreur API:', error.message);
     }
     
     return Promise.reject(error);

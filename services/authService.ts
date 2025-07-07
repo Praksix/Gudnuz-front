@@ -114,18 +114,35 @@ export const authService = {
   // Déconnexion
   async logout(): Promise<void> {
     try {
-      // Appel API pour invalider le token (optionnel)
+      // Vérifier si le token existe et n'est pas expiré avant d'appeler l'API
       const token = await tokenService.getToken();
-      if (token) {
-        await apiClient.post(SECRETS.AUTH_ENDPOINTS.LOGOUT, {}, {
-          headers: { Authorization: `Bearer ${token}` }
-        });
+      if (token && !isTokenExpired(token)) {
+        try {
+          await apiClient.post(SECRETS.AUTH_ENDPOINTS.LOGOUT, {}, {
+            headers: { Authorization: `Bearer ${token}` }
+          });
+          console.log('✅ Déconnexion API réussie');
+        } catch (apiError: any) {
+          // Si l'API retourne 403 ou 401, c'est normal (token expiré ou invalide)
+          if (apiError.response?.status === 403 || apiError.response?.status === 401) {
+            console.log('ℹ️ Token expiré ou invalide, déconnexion locale uniquement');
+          } else {
+            console.warn('⚠️ Erreur API lors de la déconnexion (non critique):', apiError.message);
+          }
+        }
+      } else {
+        console.log('ℹ️ Aucun token valide trouvé, déconnexion locale uniquement');
       }
     } catch (error) {
-      console.error('Erreur lors de la déconnexion:', error);
+      console.error('❌ Erreur lors de la déconnexion:', error);
     } finally {
-      // Supprimer les données locales
-      await this.clearUserData();
+      // Toujours supprimer les données locales, même si l'API échoue
+      try {
+        await this.clearUserData();
+        console.log('✅ Données utilisateur supprimées localement');
+      } catch (clearError) {
+        console.error('❌ Erreur lors de la suppression des données locales:', clearError);
+      }
     }
   },
 
@@ -133,17 +150,27 @@ export const authService = {
   async isLoggedIn(): Promise<boolean> {
     try {
       const token = await tokenService.getToken();
-      if (!token) return false;
+      console.log('🔑 Token trouvé:', token ? 'Oui' : 'Non');
+      
+      if (!token) {
+        console.log('❌ Aucun token trouvé');
+        return false;
+      }
       
       // Vérifier si le token n'est pas expiré
-      if (isTokenExpired(token)) {
+      const expired = isTokenExpired(token);
+      console.log('⏰ Token expiré:', expired);
+      
+      if (expired) {
+        console.log('🔄 Token expiré, suppression des données');
         await this.clearUserData();
         return false;
       }
       
+      console.log('✅ Token valide');
       return true;
     } catch (error) {
-      console.error('Erreur lors de la vérification de connexion:', error);
+      console.error('❌ Erreur lors de la vérification de connexion:', error);
       return false;
     }
   },

@@ -1,5 +1,5 @@
-import React from 'react';
-import { ListRenderItemInfo, StyleSheet, View, Text, FlatList, TouchableOpacity, ActivityIndicator, RefreshControl } from 'react-native';
+import React, { useEffect } from 'react';
+import { ListRenderItemInfo, StyleSheet, View, Text, FlatList, TouchableOpacity, ActivityIndicator } from 'react-native';
 import { useNuzs } from '../hooks/useNuzs';
 import { Nuz } from '../services/nuzService';
 
@@ -29,6 +29,7 @@ export const ListNuz = ({ currentUserId, autoRefresh = false }: ListNuzProps): R
     if (diffInHours < 1) return 'À l\'instant';
     if (diffInHours < 24) return `Il y a ${diffInHours}h`;
     if (diffInHours < 48) return 'Hier';
+    if (diffInHours > 48) return 'Il y a quelques jours';
     
     const diffInDays = Math.floor(diffInHours / 24);
     return `Il y a ${diffInDays}j`;
@@ -56,7 +57,7 @@ export const ListNuz = ({ currentUserId, autoRefresh = false }: ListNuzProps): R
         <View style={styles.header}>
           <Text style={styles.title}>{nuz.title}</Text>
           <View style={styles.metaInfo}>
-            <Text style={styles.author}>Par {nuz.author || nuz.authorId || 'Anonyme'}</Text>
+            <Text style={styles.author}>Par {nuz.authorUsername}</Text>
             <Text style={styles.date}>{formatDate(nuz.createdAt)}</Text>
           </View>
         </View>
@@ -120,14 +121,7 @@ export const ListNuz = ({ currentUserId, autoRefresh = false }: ListNuzProps): R
       renderItem={renderItem}
       keyExtractor={(item) => item.id}
       showsVerticalScrollIndicator={false}
-      refreshControl={
-        <RefreshControl
-          refreshing={loading}
-          onRefresh={refresh}
-          colors={['#007AFF']}
-          tintColor="#007AFF"
-        />
-      }
+      scrollEnabled={false}
       ListEmptyComponent={
         <View style={styles.emptyContainer}>
           <Text style={styles.emptyText}>Aucun Nuz trouvé</Text>

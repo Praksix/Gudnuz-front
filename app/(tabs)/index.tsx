@@ -7,14 +7,38 @@ import ParallaxScrollView from '@/components/ParallaxScrollView';
 import { ThemedText } from '@/components/ThemedText';
 import { ThemedView } from '@/components/ThemedView';
 import { ListNuz } from '@/components/ListNuz';
+import { useAuthContext } from '@/components/AuthContext';
+import { IconSymbol } from '@/components/ui/IconSymbol';
+import { useNuzs } from '@/hooks/useNuzs';
 
 export default function HomeScreen() {
-  const handleCreateNuz = () => {
-    router.push('/create-nuz');
+  const { user, logout } = useAuthContext();
+  const currentUserId = user?.id;
+  const { refresh, loading } = useNuzs({ currentUserId });
+
+  const handleLogout = async () => {
+    try {
+      await logout();
+      // La redirection vers la page de connexion sera automatique grâce à AuthNavigator
+    } catch (error) {
+      console.error('Erreur lors de la déconnexion:', error);
+    }
   };
 
   return (
     <View style={styles.container}>
+             <View style={styles.headerSettings}>
+             <TouchableOpacity style={styles.settingsButton}>
+               <IconSymbol
+                 name="menu"
+                 size={50}
+                 color="#000000"
+               />
+             </TouchableOpacity>
+             <TouchableOpacity style={styles.logoutButton} onPress={handleLogout}>
+               <Text style={styles.logoutButtonText}>Déconnexion</Text>
+             </TouchableOpacity>
+           </View>
       <ParallaxScrollView
         headerBackgroundColor={{ light: '#A1CEDC', dark: '#1D3D47' }}
         headerImage={
@@ -22,20 +46,23 @@ export default function HomeScreen() {
             source={require('@/assets/images/partial-react-logo.png')}
             style={styles.reactLogo}
           />
-        }>
+        }
+        onRefresh={refresh}
+        refreshing={loading}>
         <ThemedView style={styles.titleContainer}>
-          <ThemedText type="title">Gudnuz du jour !</ThemedText>
-          <HelloWave />
+          <View style={styles.headerRow}>
+        
+            <View style={styles.titleSection}>
+              <ThemedText type="title">Gudnuz du jour !</ThemedText>
+              <HelloWave />
+            </View>
+            
+          </View>
         </ThemedView>
         <ThemedView style={styles.stepContainer}>
-          <ListNuz></ListNuz>
+          <ListNuz currentUserId={currentUserId}></ListNuz>
         </ThemedView>
       </ParallaxScrollView>
-      
-      <TouchableOpacity style={styles.floatingButton} onPress={handleCreateNuz} activeOpacity={0.8}>
-        <Text style={styles.floatingButtonText}>+</Text>
-        <Text style={styles.floatingButtonLabel}>Proposer une Gud Nuz</Text>
-      </TouchableOpacity>
     </View>
   );
 }
@@ -45,10 +72,64 @@ const styles = StyleSheet.create({
     flex: 1,
     position: 'relative',
   },
+
+  headerSettings: {
+    position: 'absolute',
+    top: 0,
+    right: 0,
+    backgroundColor: 'none',
+    zIndex: 1000,
+    margin: 10,
+    flexDirection: 'row',
+    gap: 10,
+    alignItems: 'center',
+  },
+
+  settingsButton: {
+    fontSize: 100,
+    padding: 8,
+    borderRadius: 20,
+    backgroundColor: 'white',
+    width: 30,
+    height: 30,
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+
   titleContainer: {
     flexDirection: 'row',
     alignItems: 'center',
     gap: 8,
+  },
+  headerRow: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    width: '100%',
+  },
+  titleSection: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 8,
+  },
+  logoutButton: {
+    backgroundColor: '#FF3B30',
+    paddingHorizontal: 12,
+    paddingVertical: 8,
+    borderRadius: 16,
+    shadowColor: '#000',
+    shadowOffset: {
+      width: 0,
+      height: 2,
+    },
+    shadowOpacity: 0.25,
+    shadowRadius: 3.84,
+    elevation: 5,
+  },
+  logoutButtonText: {
+    color: '#fff',
+    fontSize: 12,
+    fontWeight: '600',
   },
   stepContainer: {
     gap: 8,
@@ -60,36 +141,5 @@ const styles = StyleSheet.create({
     bottom: 0,
     left: 0,
     position: 'absolute',
-  },
-  floatingButton: {
-    position: 'absolute',
-    bottom: 100,
-    right: 20,
-    backgroundColor: '#007AFF',
-    borderRadius: 28,
-    paddingVertical: 16,
-    paddingHorizontal: 20,
-    flexDirection: 'row',
-    alignItems: 'center',
-    shadowColor: '#000',
-    shadowOffset: {
-      width: 0,
-      height: 4,
-    },
-    shadowOpacity: 0.3,
-    shadowRadius: 8,
-    elevation: 8,
-    zIndex: 1000,
-  },
-  floatingButtonText: {
-    fontSize: 24,
-    fontWeight: 'bold',
-    color: '#fff',
-    marginRight: 8,
-  },
-  floatingButtonLabel: {
-    fontSize: 16,
-    fontWeight: '600',
-    color: '#fff',
   },
 });

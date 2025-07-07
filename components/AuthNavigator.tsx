@@ -1,8 +1,8 @@
 import React from 'react';
 import { View, StyleSheet, ActivityIndicator } from 'react-native';
+import { Stack } from 'expo-router';
 import { useAuthContext } from './AuthContext';
 import { LoginScreen } from './LoginScreen';
-import { NuzListExample } from './NuzListExample';
 
 export const AuthNavigator = (): React.ReactElement => {
   const { isAuthenticated, isLoading, user } = useAuthContext();
@@ -22,7 +22,7 @@ export const AuthNavigator = (): React.ReactElement => {
   }
 
   // Affichage de l'application principale si authentifié
-  return <NuzListExample currentUserId={user?.id} />;
+  return <Stack />;
 };
 
 const styles = StyleSheet.create({

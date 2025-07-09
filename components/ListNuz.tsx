@@ -9,7 +9,7 @@ interface ListNuzProps {
 }
 
 export const ListNuz = ({ currentUserId, autoRefresh = false }: ListNuzProps): React.ReactElement => {
-  const { nuzs, loading, error, hasUserVoted, handleVote, refresh } = useNuzs({
+  const { nuzs, loading, error, hasUserVoted, getVoteCount, handleVote, refresh } = useNuzs({
     currentUserId,
     autoRefresh,
   });
@@ -51,6 +51,7 @@ export const ListNuz = ({ currentUserId, autoRefresh = false }: ListNuzProps): R
   const renderItem = (info: ListRenderItemInfo<Nuz>): React.ReactElement => {
     const nuz = info.item;
     const isLiked = hasUserVoted(nuz.id);
+    const voteCount = getVoteCount(nuz.id);
     
     return (
       <TouchableOpacity style={styles.item} activeOpacity={0.7}>
@@ -78,7 +79,7 @@ export const ListNuz = ({ currentUserId, autoRefresh = false }: ListNuzProps): R
               {isLiked ? '❤️' : '🤍'}
             </Text>
             <Text style={[styles.voteCount, isLiked && styles.likedText]}>
-              {nuz.voteCount}
+              {voteCount}
             </Text>
           </TouchableOpacity>
           

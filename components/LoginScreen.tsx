@@ -138,6 +138,7 @@ export const LoginScreen = (): React.ReactElement => {
               placeholder="Entrez votre mot de passe"
               secureTextEntry
               autoCapitalize="none"
+              textContentType="none"
             />
           </View>
 
@@ -151,6 +152,7 @@ export const LoginScreen = (): React.ReactElement => {
                 placeholder="Confirmez votre mot de passe"
                 secureTextEntry
                 autoCapitalize="none"
+                textContentType="none"
               />
             </View>
           )}

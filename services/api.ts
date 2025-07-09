@@ -1,9 +1,19 @@
 import axios from 'axios';
+import { Platform } from 'react-native';
 import { getMobileApiUrl } from '../config/environment';
 import { tokenService } from './tokenService';
 
 // Configuration de base de l'API
 const API_BASE_URL = getMobileApiUrl();
+
+// Log de débogage pour vérifier l'URL utilisée
+if (__DEV__) {
+  console.log('🌐 Configuration API:', {
+    baseURL: API_BASE_URL,
+    platform: Platform.OS,
+    isDev: __DEV__
+  });
+}
 
 // Instance axios configurée avec un timeout plus long pour le développement
 export const apiClient = axios.create({
@@ -17,6 +27,16 @@ export const apiClient = axios.create({
 // Intercepteur pour ajouter automatiquement le token d'authentification
 apiClient.interceptors.request.use(
   async (config) => {
+    // Log de débogage pour voir les requêtes envoyées
+    if (__DEV__) {
+      console.log('📡 Requête API:', {
+        method: config.method?.toUpperCase(),
+        url: config.url,
+        fullURL: `${config.baseURL}${config.url}`,
+        data: config.data
+      });
+    }
+    
     try {
       const token = await tokenService.getToken();
       if (token) {

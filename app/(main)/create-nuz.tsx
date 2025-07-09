@@ -21,6 +21,9 @@ export default function CreateNuzScreen() {
   const [author, setAuthor] = useState('');
   const [loading, setLoading] = useState(false);
   const [currentUserId, setCurrentUserId] = useState<string | null>(null);
+  
+  // Note: On n'utilise pas useNuzs ici car on veut rafraîchir la page d'accueil
+  // qui a sa propre instance du hook
 
   useEffect(() => {
     const getCurrentUser = async () => {
@@ -65,7 +68,11 @@ export default function CreateNuzScreen() {
               setTitle('');
               setContent('');
               setAuthor('');
-              router.back();
+              
+              console.log('✅ Nuz publié avec succès, retour à la page d\'accueil');
+              
+              // Retourner à la page d'accueil avec paramètre de rafraîchissement
+              router.push('/(tabs)?refresh=true');
             },
           },
         ]
@@ -145,11 +152,11 @@ export default function CreateNuzScreen() {
         </View>
 
         <View style={styles.tipsContainer}>
-          <Text style={styles.tipsTitle}>💡 Conseils pour un bon Nuz :</Text>
-          <Text style={styles.tip}>• Soyez authentique et personnel</Text>
-          <Text style={styles.tip}>• Partagez une expérience vécue</Text>
-          <Text style={styles.tip}>• Rendez votre histoire engageante</Text>
-          <Text style={styles.tip}>• Respectez la communauté</Text>
+          <Text style={styles.tipsTitle}>💡 Qu'est-ce qu'une bonne Nuz :</Text>
+          <Text style={styles.tip}>• Une citation inspirante</Text>
+          <Text style={styles.tip}>• Une information utile et importante</Text>
+          <Text style={styles.tip}>• Une blague</Text>
+          <Text style={styles.tip}>• N'importe quoi qui puisse créer un sourire</Text>
         </View>
       </ScrollView>
     </KeyboardAvoidingView>

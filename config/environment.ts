@@ -32,13 +32,15 @@ export const getMobileApiUrl = () => {
     if (Platform.OS === 'android') {
       // Pour émulateur Android
       return 'http://10.0.2.2:8080/api';
-      // Pour appareil physique Android, décommentez et remplacez par votre IP
-      // return 'http://192.168.1.100:8080/api';
+      // Pour appareil physique Android, utilisez l'IP de votre machine
+      // return 'http://192.168.1.12:8080/api';
     } else if (Platform.OS === 'ios') {
       // Pour simulateur iOS
-      return 'http://localhost:8080/api';
-      // Pour appareil physique iOS, décommentez et remplacez par votre IP
-      // return 'http://192.168.1.100:8080/api';
+      // return 'http://localhost:8080/api';
+      // Pour appareil physique iOS, utilisez l'IP de votre machine
+      return 'http://192.168.1.12:8080/api';
+      // Alternative avec ngrok (remplacez par votre URL ngrok)
+      // return 'https://votre-tunnel-ngrok.ngrok.io/api';
     }
   }
   

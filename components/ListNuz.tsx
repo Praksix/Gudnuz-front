@@ -1,5 +1,6 @@
 import React, { useEffect } from 'react';
-import { ListRenderItemInfo, StyleSheet, View, Text, FlatList, TouchableOpacity, ActivityIndicator } from 'react-native';
+import { ListRenderItemInfo, StyleSheet, View, Text, FlatList, TouchableOpacity, ActivityIndicator, Image } from 'react-native';
+import { router } from 'expo-router';
 import { useNuzs } from '../hooks/useNuzs';
 import { Nuz } from '../services/nuzService';
 
@@ -48,13 +49,77 @@ export const ListNuz = ({ currentUserId, autoRefresh = false }: ListNuzProps): R
     }
   };
 
+  const handleNuzPress = (nuzId: string) => {
+    router.push(`/nuz-detail?id=${nuzId}`);
+  };
+
+  const renderElectedNuz = (nuz: Nuz, isLiked: boolean, voteCount: number): React.ReactElement => {
+    return (
+      <TouchableOpacity 
+        style={styles.electedItem} 
+        activeOpacity={0.7}
+        onPress={() => handleNuzPress(nuz.id)}
+      >
+        <View style={styles.electedHeader}>
+          <View style={styles.crownContainer}>
+            <Text style={styles.crownIcon}>👑</Text>
+          </View>
+          <View style={styles.electedTitleContainer}>
+            <Text style={styles.electedTitle}>{nuz.title}</Text>
+            <Text style={styles.electedBadge}>NUZ ÉLU</Text>
+          </View>
+        </View>
+        
+        <View style={styles.electedContent}>
+          <Text style={styles.electedContentText}>
+            {nuz.content}
+          </Text>
+        </View>
+        
+        <View style={styles.electedFooter}>
+          <View style={styles.electedMetaInfo}>
+            <Text style={styles.electedAuthor}>Par {nuz.authorUsername}</Text>
+            <Text style={styles.electedDate}>{formatDate(nuz.createdAt)}</Text>
+          </View>
+          
+          <TouchableOpacity 
+            style={[styles.electedLikeButton, isLiked && styles.electedLikedButton]} 
+            onPress={(e) => {
+              e.stopPropagation();
+              handleVote(nuz.id);
+            }}
+            activeOpacity={0.7}
+          >
+            <Image 
+              source={isLiked ? require('../assets/images/heartfull.png') : require('../assets/images/heart.png')}
+              style={[styles.electedLikeIcon, isLiked && styles.electedLikedIcon]}
+            />
+            <Text style={[styles.electedVoteCount, isLiked && styles.electedLikedText]}>
+              {voteCount}
+            </Text>
+          </TouchableOpacity>
+        </View>
+      </TouchableOpacity>
+    );
+  };
+
   const renderItem = (info: ListRenderItemInfo<Nuz>): React.ReactElement => {
     const nuz = info.item;
     const isLiked = hasUserVoted(nuz.id);
     const voteCount = getVoteCount(nuz.id);
     
+    // Si le Nuz est élu, utiliser le rendu spécial
+    if (nuz.status === 'ELECTED') {
+      return renderElectedNuz(nuz, isLiked, voteCount);
+    }
+    
+    // Rendu normal pour les autres statuts
     return (
-      <TouchableOpacity style={styles.item} activeOpacity={0.7}>
+      <TouchableOpacity 
+        style={styles.item} 
+        activeOpacity={0.7}
+        onPress={() => handleNuzPress(nuz.id)}
+      >
         <View style={styles.header}>
           <Text style={styles.title}>{nuz.title}</Text>
           <View style={styles.metaInfo}>
@@ -72,12 +137,16 @@ export const ListNuz = ({ currentUserId, autoRefresh = false }: ListNuzProps): R
         <View style={styles.footer}>
           <TouchableOpacity 
             style={[styles.likeButton, isLiked && styles.likedButton]} 
-            onPress={() => handleVote(nuz.id)}
+            onPress={(e) => {
+              e.stopPropagation();
+              handleVote(nuz.id);
+            }}
             activeOpacity={0.7}
           >
-            <Text style={[styles.likeIcon, isLiked && styles.likedIcon]}>
-              {isLiked ? '❤️' : '🤍'}
-            </Text>
+            <Image 
+              source={isLiked ? require('../assets/images/heartfull.png') : require('../assets/images/heart.png')}
+              style={[styles.likeIcon, isLiked && styles.likedIcon]}
+            />
             <Text style={[styles.voteCount, isLiked && styles.likedText]}>
               {voteCount}
             </Text>
@@ -151,7 +220,7 @@ const styles = StyleSheet.create({
       width: 0,
       height: 2,
     },
-    shadowOpacity: 0.1,
+    shadowOpacity: 0.2,
     shadowRadius: 4,
     elevation: 3,
   },
@@ -296,5 +365,125 @@ const styles = StyleSheet.create({
     fontSize: 14,
     color: '#999',
     textAlign: 'center',
+  },
+  electedItem: {
+    marginVertical: 8,
+    backgroundColor: '#fffdf0',
+    borderRadius: 16,
+    padding: 20,
+    shadowColor: '#ffd700',
+    shadowOffset: {
+      width: 0,
+      height: 0,
+    },
+    shadowOpacity: 0.7,
+    shadowRadius: 8,
+    elevation: 5,
+    borderWidth: 2,
+    borderColor: '#ffd700',
+  },
+  electedHeader: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    marginBottom: 12,
+  },
+  crownContainer: {
+    backgroundColor: '#ffd700',
+    borderRadius: 12,
+    padding: 10,
+    marginRight: 12,
+    shadowColor: '#000',
+    shadowOffset: {
+      width: 0,
+      height: 2,
+    },
+    shadowOpacity: 0.3,
+    shadowRadius: 4,
+    elevation: 3,
+  },
+  crownIcon: {
+    fontSize: 24,
+  },
+  electedTitleContainer: {
+    flex: 1,
+  },
+  electedTitle: {
+    fontSize: 20,
+    fontWeight: 'bold',
+    color: '#8B4513',
+    marginBottom: 6,
+  },
+  electedBadge: {
+    fontSize: 11,
+    fontWeight: '700',
+    color: '#8B4513',
+    backgroundColor: '#ffd700',
+    paddingHorizontal: 10,
+    paddingVertical: 4,
+    borderRadius: 10,
+    alignSelf: 'flex-start',
+    letterSpacing: 0.5,
+  },
+  electedContent: {
+    marginBottom: 12,
+  },
+  electedContentText: {
+    fontSize: 15,
+    lineHeight: 22,
+    color: '#2c2c2c',
+    fontWeight: '400',
+  },
+  electedFooter: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    paddingTop: 12,
+    borderTopWidth: 2,
+    borderTopColor: '#ffd700',
+  },
+  electedMetaInfo: {
+    flex: 1,
+    marginRight: 16,
+  },
+  electedAuthor: {
+    fontSize: 14,
+    color: '#8B4513',
+    fontWeight: '600',
+    marginBottom: 4,
+  },
+  electedDate: {
+    fontSize: 12,
+    color: '#D2691E',
+    fontWeight: '500',
+  },
+  electedLikeButton: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    paddingHorizontal: 14,
+    paddingVertical: 8,
+    borderRadius: 22,
+    backgroundColor: '#fffbe6',
+    borderWidth: 2,
+    borderColor: '#ffd700',
+  },
+  electedLikedButton: {
+    backgroundColor: '#ffd700',
+    borderColor: '#8B4513',
+  },
+  electedLikeIcon: {
+    fontSize: 16,
+    marginRight: 6,
+  },
+  electedLikedIcon: {
+    fontSize: 16,
+    marginRight: 6,
+  },
+  electedVoteCount: {
+    fontSize: 14,
+    fontWeight: '600',
+    color: '#8B4513',
+  },
+  electedLikedText: {
+    color: '#8B4513',
   },
 });

@@ -1,6 +1,7 @@
 import { Image } from 'expo-image';
 import { Platform, StyleSheet, TouchableOpacity, Text, View } from 'react-native';
-import { router } from 'expo-router';
+import { router, useLocalSearchParams } from 'expo-router';
+import { useState, useEffect } from 'react';
 
 import { HelloWave } from '@/components/HelloWave';
 import ParallaxScrollView from '@/components/ParallaxScrollView';
@@ -10,11 +11,35 @@ import { ListNuz } from '@/components/ListNuz';
 import { useAuthContext } from '@/components/AuthContext';
 import { IconSymbol } from '@/components/ui/IconSymbol';
 import { useNuzs } from '@/hooks/useNuzs';
+import { SideMenu } from '@/components/SideMenu';
+
+// Fonction pour déterminer le titre en fonction de l'heure
+const getGreetingTitle = () => {
+  const currentHour = new Date().getHours();
+  
+  if (currentHour >= 8 && currentHour < 20) {
+    return "Bonjour !";
+  } else {
+    return "Bonne nuit !";
+  }
+};
 
 export default function HomeScreen() {
   const { user, logout } = useAuthContext();
   const currentUserId = user?.id;
   const { refresh, loading } = useNuzs({ currentUserId });
+  const [isSideMenuVisible, setIsSideMenuVisible] = useState(false);
+  const params = useLocalSearchParams();
+  
+  // Rafraîchir automatiquement si on revient de la création d'un Nuz
+  useEffect(() => {
+    if (params.refresh === 'true') {
+      console.log('🔄 Rafraîchissement automatique de la page d\'accueil');
+      refresh();
+      // Nettoyer le paramètre pour éviter les rafraîchissements multiples
+      router.setParams({ refresh: undefined });
+    }
+  }, [params.refresh, refresh]);
 
   const handleLogout = async () => {
     try {
@@ -25,18 +50,26 @@ export default function HomeScreen() {
     }
   };
 
+  const handleOpenSideMenu = () => {
+    setIsSideMenuVisible(true);
+  };
+
+  const handleCloseSideMenu = () => {
+    setIsSideMenuVisible(false);
+  };
+
   return (
     <View style={styles.container}>
              <View style={styles.headerSettings}>
-             <TouchableOpacity style={styles.settingsButton}>
+             <TouchableOpacity 
+               style={styles.settingsButton}
+               onPress={handleOpenSideMenu}
+             >
                <IconSymbol
                  name="menu"
                  size={50}
                  color="#000000"
                />
-             </TouchableOpacity>
-             <TouchableOpacity style={styles.logoutButton} onPress={handleLogout}>
-               <Text style={styles.logoutButtonText}>Déconnexion</Text>
              </TouchableOpacity>
            </View>
       <ParallaxScrollView
@@ -53,8 +86,8 @@ export default function HomeScreen() {
           <View style={styles.headerRow}>
         
             <View style={styles.titleSection}>
-              <ThemedText type="title">Gudnuz du jour !</ThemedText>
-              <HelloWave />
+              <ThemedText type="title">{getGreetingTitle()}</ThemedText>
+          
             </View>
             
           </View>
@@ -63,6 +96,11 @@ export default function HomeScreen() {
           <ListNuz currentUserId={currentUserId}></ListNuz>
         </ThemedView>
       </ParallaxScrollView>
+      
+      <SideMenu 
+        isVisible={isSideMenuVisible}
+        onClose={handleCloseSideMenu}
+      />
     </View>
   );
 }
@@ -71,6 +109,7 @@ const styles = StyleSheet.create({
   container: {
     flex: 1,
     position: 'relative',
+    backgroundColor: 'red', // Couleur de fond principale
   },
 
   headerSettings: {
@@ -110,7 +149,8 @@ const styles = StyleSheet.create({
   titleSection: {
     flexDirection: 'row',
     alignItems: 'center',
-    gap: 8,
+    textAlign: 'center',
+   
   },
   logoutButton: {
     backgroundColor: '#FF3B30',
@@ -136,8 +176,8 @@ const styles = StyleSheet.create({
     marginBottom: 8,
   },
   reactLogo: {
-    height: 178,
-    width: 290,
+    height: '100%',
+    width: '100%',
     bottom: 0,
     left: 0,
     position: 'absolute',

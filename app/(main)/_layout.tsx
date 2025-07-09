@@ -16,6 +16,8 @@ export default function TabLayout() {
       screenOptions={{
         tabBarActiveTintColor: Colors[colorScheme ?? 'light'].tint,
         headerShown: false,
+        headerStyle: { display: 'none' },
+        headerTitle: '',
         tabBarButton: HapticTab,
         tabBarBackground: TabBarBackground,
         tabBarStyle: Platform.select({
@@ -30,6 +32,9 @@ export default function TabLayout() {
         name="index"
         options={{
           title: 'Accueil',
+          headerShown: false,
+          headerTitle: '',
+          headerStyle: { display: 'none' },
           tabBarIcon: ({ color }) => <IconSymbol size={28} name="house.fill" color={color} />,
         }}
       />
@@ -38,6 +43,9 @@ export default function TabLayout() {
         name="create-nuz"
         options={{
           title: 'Créer',
+          headerShown: false,
+          headerTitle: '',
+          headerStyle: { display: 'none' },
           tabBarIcon: ({ color }) => <IconSymbol size={28} name="plus.circle.fill" color={color} />,
         }}
       />
